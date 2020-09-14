@@ -5,11 +5,13 @@
  */
 package humanresource;
 
+import java.awt.event.ItemEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import net.proteanit.sql.DbUtils;
 
@@ -25,7 +27,8 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
      */
     public FrameEmployeeDetails() {
         initComponents();
-        populatetableEmployeesData();
+        populateTableEmployeesData();
+        populateComboBox();
     }
 
     /**
@@ -45,7 +48,7 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
         labelAddress = new javax.swing.JLabel();
         labelDepartmentName = new javax.swing.JLabel();
         labelDateOfEmployement = new javax.swing.JLabel();
-        textfieldID = new javax.swing.JTextField();
+        textFieldID = new javax.swing.JTextField();
         textFieldName = new javax.swing.JTextField();
         textFieldPhoneNumber = new javax.swing.JTextField();
         textFieldAddress = new javax.swing.JTextField();
@@ -97,11 +100,20 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
 
         labelDateOfEmployement.setText("Date Of Employement");
 
-        comboBoxDepartmentName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxDepartmentName.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                comboBoxDepartmentNameItemStateChanged(evt);
+            }
+        });
 
         buttonUpdate.setText("Update");
 
         buttonInsert.setText("Insert");
+        buttonInsert.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonInsertActionPerformed(evt);
+            }
+        });
 
         buttonDelete.setText("Delete");
 
@@ -123,7 +135,7 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
                             .addComponent(labelName, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(textfieldID)
+                            .addComponent(textFieldID)
                             .addComponent(textFieldName)
                             .addComponent(textFieldPhoneNumber)
                             .addComponent(textFieldAddress)
@@ -145,7 +157,7 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelID)
-                    .addComponent(textfieldID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(textFieldID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelName)
@@ -177,9 +189,71 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void buttonInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonInsertActionPerformed
+        try{
+            Class.forName("org.sqlite.JDBC");
+
+            String url = "jdbc:sqlite:/home/jackline/Adhiambo/qlynn.db";            
+            Connection conn = DriverManager.getConnection(url);
+
+            String sql = "INSERT INTO Employees VALUES (?, ?, ?, ?, ?, ?)"; 
+            PreparedStatement pst = conn.prepareStatement(sql); 
+
+            pst.setInt(1, Integer.parseInt(textFieldID.getText()));
+            pst.setString(2, textFieldName.getText());
+            pst.setInt(3, Integer.parseInt(textFieldPhoneNumber.getText()));
+            pst.setString(4, textFieldAddress.getText());
+            pst.setString(5, (String) comboBoxDepartmentName.getSelectedItem());
+            SimpleDateFormat sdf = new SimpleDateFormat ("yyyy-MM-dd");
+            String date = sdf.format(dateChooserDateOfEmployement.getDate());
+            pst.setString(6,date);
+            pst.executeUpdate();             
+            JOptionPane.showMessageDialog(null, "Insertion successful");
+        }
+        catch(Exception e){
+            JOptionPane.showMessageDialog(null, e);
+        }
+        populateTableEmployeesData();
+    }//GEN-LAST:event_buttonInsertActionPerformed
+
+    private void comboBoxDepartmentNameItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboBoxDepartmentNameItemStateChanged
+        try{
+            Class.forName("org.sqlite.JDBC");
+            String url = "jdbc:sqlite:/home/jackline/Adhiambo/qlynn.db";
+            Connection conn = DriverManager.getConnection(url);
+            String sql = "SELECT Name FROM Departments"; 
+            
+        }catch(Exception ex){
+            JOptionPane.showMessageDialog(null, ex);
+        }
+        if(evt.getStateChange()== ItemEvent.SELECTED){
+            JOptionPane.showMessageDialog(null,comboBoxDepartmentName.getSelectedItem().toString()+
+                    " is Selected");
+        }
+    }//GEN-LAST:event_comboBoxDepartmentNameItemStateChanged
     
+    private void populateComboBox(){
+        try{
+            Class.forName("org.sqlite.JDBC");
+
+            String url = "jdbc:sqlite:/home/jackline/Adhiambo/qlynn.db";            
+            Connection conn = DriverManager.getConnection(url);
+            String sql= "SELECT Name FROM Departments";
+            PreparedStatement pst = conn.prepareStatement(sql); 
+            ResultSet rs= pst.executeQuery();
+            
+            while(rs.next()){
+                String name= rs.getString("Name");
+                comboBoxDepartmentName.addItem(name);
+            }
+        }
+        catch(Exception e){
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }    
     
-    public void populatetableEmployeesData(){
+    public void populateTableEmployeesData(){
         
         try{
             Class.forName("org.sqlite.JDBC");
@@ -215,8 +289,8 @@ public class FrameEmployeeDetails extends javax.swing.JInternalFrame {
     private javax.swing.JLabel labelPhoneNumber;
     private javax.swing.JTable tableEmployeeDetails;
     private javax.swing.JTextField textFieldAddress;
+    private javax.swing.JTextField textFieldID;
     private javax.swing.JTextField textFieldName;
     private javax.swing.JTextField textFieldPhoneNumber;
-    private javax.swing.JTextField textfieldID;
     // End of variables declaration//GEN-END:variables
 }
